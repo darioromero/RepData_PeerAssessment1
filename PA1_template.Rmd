@@ -1,25 +1,120 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
+title: 'Reproducible Research: Peer Assessment 1'
+output:
+  pdf_document:
+    toc: yes
   html_document:
-    keep_md: true
+    highlight: tango
+    keep_md: yes
+    theme: journal
+    toc: yes
 ---
 
 
 ## Loading and preprocessing the data
 
-
+```{r, echo=TRUE}
+setwd("C:\\Users\\Dario\\Documents\\GitHub\\RepData_PeerAssessment1")
+suppressMessages(library(dplyr))
+activity <- read.table(unz("repdata_data_activity.zip", "activity.csv"),
+                       header = TRUE, sep = ",")
+```
 
 ## What is mean total number of steps taken per day?
 
+```{r, echo=TRUE}
+stepsPerDay <- activity %>% select(date, steps) %>% group_by(date) %>% 
+  summarize(mean(steps, na.rm = TRUE))
+names(stepsPerDay) <- c("date", "sum")
+```
 
+1. Make a histogram of the total number of steps taken each day
+
+```{r echo=TRUE}
+hist(stepsPerDay$sum, 
+     freq = TRUE,
+     col = 'red', 
+     xlab = 'Total Number of Steps per day',
+     breaks = 10,
+     main = 'Number of Steps per Day')
+dev.copy(png, file = 'figures/plot1.png', height=480, width=480)
+dev.off()
+stepsPerDayMean <- mean(stepsPerDay$sum, na.rm = TRUE)
+stepsPerDayMedian <- median(stepsPerDay$sum, na.rm = TRUE)
+```
+
+2. Calculate and report the mean and median total number of steps taken per day
+
+Variable       |  mean       |         median
+---------------|-------------|-----------------------
+Steps Per Day  | `r format(round(stepsPerDayMean, 4), scientific = FALSE)` | `r format(round(stepsPerDayMedian, 4), scientific = FALSE)`
 
 ## What is the average daily activity pattern?
 
+1. Make a time series plot of the 5-minute interval and the ave number steps
 
+```{r echo=TRUE}
+intervalPerDayMean <- activity %>% group_by(interval) %>% 
+  summarize(mean(steps, na.rm = TRUE))
+names(intervalPerDayMean) <- c("interval", "MeanSteps")
+intervalLevels <- levels(factor(activity$interval))
+par(mar = c(4.5,4.5,1,1))
+plot(intervalPerDayMean$MeanSteps ~ intervalLevels, type = "l",
+     ylab = "number of steps", xlab = "interval levels", col = "red")
+dev.copy(png, file = 'figures/plot2.png', height=480, width=960)
+dev.off()
+```
+
+2. Which 5-minute interval on average contains the maximum number of steps
+
+```{r echo=TRUE}
+max5MinMeanValue <- max(intervalPerDayMean$MeanSteps)
+max5MinMeanRow <- which(intervalPerDayMean$MeanSteps == max5MinMeanValue)
+max5MinMeanInterval <- intervalPerDayMean[row(intervalPerDayMean) == 
+                                            max5MinMeanRow,][1,1]
+```
+
+**The (`r max5MinMeanInterval`) 5-minute interval contains maximum number 
+of steps in average across all days: 
+`r format(round(max5MinMeanValue, 0), scientific = FALSE)`**
 
 ## Imputing missing values
 
+1. Calculate and report the total number of missing values in the dataset
 
+```{r, echo=TRUE}
+iSteps <- which(is.na(activity[,1]) == TRUE)
+jInterval <- activity[iSteps,3]
+activity[iSteps, 1] <- intervalPerDayMean[,2]
+```
+
+**Total number of missing values rows in the dataset is: `r length(iSteps)`**
+
+2. Devise a strategy for filling in all of the missing values in the dataset.
+
+   - Strategy is to fill in the missing values with the average of all existing
+     values in a particular day
+
+``` {r echo=TRUE}
+missingvals = c(NA)
+meanVector <- tbl_df(aggregate(activity$steps[!activity$steps %in% missingvals],
+                               list(activity$date[!activity$steps %in% missingvals]), mean))
+names(meanVector) <- c("date", "steps")
+newActivity <- tbl_df(activity)
+mutate(newActivity, steps = ifelse(steps == NA, meanVector[newActivity$date == meanVector$date], steps))
+newActivity$steps[newActivity$steps %in% missingvals] <- 
+  meanVector$steps[newActivity$date == meanVector$date]
+
+```
+
+3. Create a new dataset that is equal to the original dataset but missing
+   values filled in
+   
+   
+4. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r, echo=TRUE}
+iSteps
+```
+** Si las hay **
