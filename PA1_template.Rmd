@@ -16,6 +16,8 @@ output:
 ```{r, echo=TRUE}
 setwd("C:\\Users\\Dario\\Documents\\GitHub\\RepData_PeerAssessment1")
 suppressMessages(library(dplyr))
+suppressMessages(library(lubridate))
+stringsAsFactors=FALSE
 activity <- read.table(unz("repdata_data_activity.zip", "activity.csv"),
                        header = TRUE, sep = ",")
 ```
@@ -93,36 +95,69 @@ activity[iSteps, 1] <- intervalPerDayMean[,2]
 
 2. Devise a strategy for filling in all of the missing values in the dataset.
 
-   - Strategy is to fill in the missing values with the average of all existing
-     values in a particular day
+   - Strategy is to fill in the missing values with the average of all steps
+     values in a particular interval
 
 ``` {r echo=TRUE}
 missingvals = c(NA)
-meanVector <- tbl_df(aggregate(activity$steps[!activity$steps %in% missingvals],
-                               list(activity$date[!activity$steps %in% missingvals]), mean))
-names(meanVector) <- c("date", "steps")
-meanVector$date <- as.character(meanVector$date)
-newActivity <- tbl_df(activity)
-newActivity$date <- as.character(newActivity$date)
 
-
-mutate(newActivity, steps = ifelse(steps == NA, 
-                                   meanVector$steps[newActivity$date == 
-                                                      meanVector$date], steps))
-
-newActivity$steps[newActivity$steps %in% missingvals] <- 
-  meanVector$steps[newActivity$date == meanVector$date]
-
+meanVector <- activity %>% group_by(interval) %>% summarize(avg_steps = mean(steps, na.rm = TRUE, na.inf = na.omit))
 ```
 
 3. Create a new dataset that is equal to the original dataset but missing
    values filled in
+
+```{r echo=TRUE}
+
+newActivity <- tbl_df(activity)
+
+newActivity <- cbind(newActivity, meanVector)
+
+newActivityVector <- data.frame(newActivity$avg_steps)
+newActivityVector <- cbind(newActivityVector, newActivity$date)
+newActivityVector <- cbind(newActivityVector, newActivity$interval)
+
+names(newActivityVector) <- c("steps", "date", "interval")
+
+```
    
+4. Make a histogram of the total number of steps taken each day and 
+   Calculate and report the mean and median total number of steps taken per day.
    
-4. 
+```{r echo=TRUE}
+
+meanf <- newActivityVector %>% group_by(date) %>% 
+  summarize(avg_steps = mean(steps)) 
+medianf <- newActivityVector %>% group_by(date) %>% summarize(med_steps = median(steps))
+```
+
+Variable       |  mean       |         median
+---------------|-------------|-----------------------
+Steps Per Day  | `r format(round(as.numeric(meanf$avg_steps), 4), scientific = FALSE)` | `r format(round(as.numeric(medianf$med_steps[1]), 4), scientific = FALSE)`
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Yes. It depends how reliable may be a technique for filling in NA data.
+
+1. Create a new factor variable in the dataset with two levels - "weekday"
+   and "weekend" indicating whether a given date is a weekday or weekend day.
+   
 ```{r, echo=TRUE}
-stepsPerDay
-```
-** Si las hay **
+weekdays1 <- c('Mon', 'Tue', 'Wed', 'Thu', 'Fri')
+activity <- activity %>% mutate(daytype = 
+                                  factor((weekdays(as.POSIXlt(activity$date),
+                                                   abbr = TRUE) %in% 
+                                            weekdays1)+1L, levels = 1:2,
+                                         labels = c("weekend", "weekday")))
+
+```   
+   
+2. Make a panel plot containing a time series plot of the 5-minute interval 
+   (x-axis) and the average number of steps taken, averaged across all weekday 
+   days or weekend days (y-axis).
+   
+```{r echo=TRUE}
+par(mfrow = c(2, 1))
+for (i in 1:2) {
+  #plot()
+} 
