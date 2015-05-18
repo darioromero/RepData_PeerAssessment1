@@ -5,7 +5,6 @@
 
 
 ```r
-setwd("C:\\Users\\Dario\\Documents\\GitHub\\RepData_PeerAssessment1")
 suppressMessages(library(dplyr))
 suppressMessages(library(lubridate))
 stringsAsFactors=FALSE
@@ -40,19 +39,15 @@ hist(stepsPerDay$sum,
 dev.copy(png, file = 'figures/plot1.png', height=480, width=480)
 ```
 
-```
-## png 
-##   3
-```
+png 
+  3 
 
 ```r
 dev.off()
 ```
 
-```
-## png 
-##   2
-```
+png 
+  2 
 
 ```r
 stepsPerDayMean <- mean(stepsPerDay$sum, na.rm = TRUE)
@@ -86,19 +81,15 @@ plot(intervalPerDayMean$MeanSteps ~ intervalLevels, type = "l",
 dev.copy(png, file = 'figures/plot2.png', height=480, width=960)
 ```
 
-```
-## png 
-##   3
-```
+png 
+  3 
 
 ```r
 dev.off()
 ```
 
-```
-## png 
-##   2
-```
+png 
+  2 
 
 2. Which 5-minute interval on average contains the maximum number of steps
 
@@ -137,7 +128,8 @@ activity[iSteps, 1] <- intervalPerDayMean[,2]
 ```r
 missingvals = c(NA)
 
-meanVector <- activity %>% group_by(interval) %>% summarize(avg_steps = mean(steps, na.rm = TRUE, na.inf = na.omit))
+meanVector <- activity %>% group_by(interval) %>% summarize(avg_steps = 
+              mean(steps, na.rm = TRUE, na.inf = na.omit))
 ```
 
 3. Create a new dataset that is equal to the original dataset but missing
@@ -161,6 +153,31 @@ names(newActivityVector) <- c("steps", "date", "interval")
    
 
 ```r
+hist(newActivityVector$steps, 
+     freq = TRUE,
+     col = 'red', 
+     xlab = 'Total Number of Steps per day',
+     breaks = 10,
+     main = 'Number of Steps per Day')
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
+```r
+dev.copy(png, file = 'figures/plot3.png', height=480, width=480)
+```
+
+png 
+  3 
+
+```r
+dev.off()
+```
+
+png 
+  2 
+
+```r
 meanf <- newActivityVector %>% group_by(date) %>% 
   summarize(avg_steps = mean(steps)) 
 medianf <- newActivityVector %>% group_by(date) %>% summarize(med_steps = median(steps))
@@ -168,11 +185,11 @@ medianf <- newActivityVector %>% group_by(date) %>% summarize(med_steps = median
 
 Variable       |  mean       |         median
 ---------------|-------------|-----------------------
-Steps Per Day  | 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826, 37.3826 | 34.1132
+Steps Per Day  | 37.3826 | 34.1132
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-Yes. It depends how reliable may be a technique for filling in NA data.
+>Yes. It depends how reliable may a technique for filling be in regards to the NA data. Although, in this case mean values are matched, median value is biased to the left.
 
 1. Create a new factor variable in the dataset with two levels - "weekday"
    and "weekend" indicating whether a given date is a weekday or weekend day.
@@ -194,7 +211,28 @@ activity <- activity %>% mutate(daytype =
 
 ```r
 par(mfrow = c(2, 1))
-for (i in 1:2) {
-  #plot()
-} 
+par(mar = c(2.5,2.5,1,1))
+
+intervalLevels <- levels(factor(activity$daytype, activity$interval))
 ```
+
+```
+## Warning in `levels<-`(`*tmp*`, value = if (nl == nL) as.character(labels)
+## else paste0(labels, : duplicated levels in factors are deprecated
+```
+
+```r
+plot(activity$steps ~ intervalLevels, type = "l",
+     ylab = "number of steps", xlab = "interval levels", col = "red")
+dev.copy(png, file = 'figures/plot4.png', height=480, width=960)
+```
+
+png 
+  3 
+
+```r
+dev.off()
+```
+
+png 
+  2 
